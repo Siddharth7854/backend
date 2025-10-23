@@ -241,6 +241,31 @@ async function ensurePropertySituationColumn() {
   }
 }
 
+// Ensure Surveys table has owner document columns
+async function ensureOwnerDocumentColumns() {
+  try {
+    const sql = await connectDb();
+    const columnsToAdd = [
+      'owner1_aadhaar_doc', 'owner2_aadhaar_doc', 'owner3_aadhaar_doc', 'owner4_aadhaar_doc', 'owner5_aadhaar_doc',
+      'owner6_aadhaar_doc', 'owner7_aadhaar_doc', 'owner8_aadhaar_doc', 'owner9_aadhaar_doc', 'owner10_aadhaar_doc',
+      'owner1_pan_doc', 'owner2_pan_doc', 'owner3_pan_doc', 'owner4_pan_doc', 'owner5_pan_doc',
+      'owner6_pan_doc', 'owner7_pan_doc', 'owner8_pan_doc', 'owner9_pan_doc', 'owner10_pan_doc',
+      'owner1_other_doc', 'owner2_other_doc', 'owner3_other_doc', 'owner4_other_doc', 'owner5_other_doc',
+      'owner6_other_doc', 'owner7_other_doc', 'owner8_other_doc', 'owner9_other_doc', 'owner10_other_doc'
+    ];
+
+    for (const columnName of columnsToAdd) {
+      const colCheck = await sql.query`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Surveys' AND COLUMN_NAME = ${columnName}`;
+      if (colCheck.recordset.length === 0) {
+        await sql.query`ALTER TABLE Surveys ADD ${columnName} NVARCHAR(255)`;
+        console.log(`Added ${columnName} column to Surveys`);
+      }
+    }
+  } catch (err) {
+    console.error('ensureOwnerDocumentColumns error:', err.message);
+  }
+}
+
 // Test route
 app.get('/', (req, res) => {
   res.send('Property Survey Backend Running');
@@ -333,6 +358,7 @@ const PORT = process.env.PORT ? parseInt(process.env.PORT, 10) : 4000;
   await ensureIsAdminColumn();
   await ensureSurveysTable();
   await ensurePropertySituationColumn();
+  await ensureOwnerDocumentColumns();
   const server = app.listen(PORT, '0.0.0.0', () => {
     console.log(`Server running on port ${PORT} (listening on 0.0.0.0)`);
   });
