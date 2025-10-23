@@ -15,7 +15,12 @@ dotenv.config();
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_dev_change_me';
 
 const app = express();
-app.use(cors());
+app.use(cors({
+  origin: true, // Allow all origins
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Requested-With']
+}));
 // If running behind a proxy (Render, Heroku, etc) enable trust proxy so req.protocol
 // reflects the external protocol (https). We still defensively prefer X-Forwarded-Proto
 // when constructing URLs below.
@@ -30,7 +35,17 @@ const uploadsDir = path.join(process.cwd(), 'uploads');
 if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
 
 // Serve uploaded files statically at /uploads/<filename>
-app.use('/uploads', express.static(uploadsDir));
+app.use('/uploads', (req, res, next) => {
+  res.header('Access-Control-Allow-Origin', '*');
+  res.header('Access-Control-Allow-Methods', 'GET, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Accept, Origin, X-Requested-With');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  if (req.method === 'OPTIONS') {
+    res.sendStatus(200);
+  } else {
+    next();
+  }
+}, express.static(uploadsDir));
 
 // Multer setup for file uploads
 const storage = multer.diskStorage({
