@@ -257,7 +257,8 @@ async function ensureOwnerDocumentColumns() {
     for (const columnName of columnsToAdd) {
       const colCheck = await sql.query`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Surveys' AND COLUMN_NAME = ${columnName}`;
       if (colCheck.recordset.length === 0) {
-        await sql.query`ALTER TABLE Surveys ADD ${columnName} NVARCHAR(255)`;
+        // Use string concatenation for DDL statements
+        await sql.query(`ALTER TABLE Surveys ADD [${columnName}] NVARCHAR(255)`);
         console.log(`Added ${columnName} column to Surveys`);
       }
     }
