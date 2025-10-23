@@ -531,6 +531,7 @@ app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, 
     let owner7Image = ownerImages[6]?.filename || '';
     let owner8Image = ownerImages[7]?.filename || '';
     let owner9Image = ownerImages[8]?.filename || '';
+    let owner10Image = ownerImages[9]?.filename || '';
     let ownerAadhaarDoc1 = ownerAadhaarDocs[0]?.filename || '';
     let ownerAadhaarDoc2 = ownerAadhaarDocs[1]?.filename || '';
     let ownerAadhaarDoc3 = ownerAadhaarDocs[2]?.filename || '';
