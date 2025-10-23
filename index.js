@@ -552,21 +552,21 @@ app.get('/api/surveys', async (req, res) => {
         if (!f) return f;
         const trimmed = String(f).trim();
         if (trimmed.startsWith('http')) return trimmed;
-        return `${baseUrl}/uploads/${trimmed}`;
+        return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const documentsField = [r.document1, r.document2, r.document3, r.document4, r.document5, r.document6, r.document7, r.document8, r.document9, r.document10].filter(f => f && f.trim().length > 0);
       const documentUrls = documentsField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
         if (trimmed.startsWith('http')) return trimmed;
-        return `${baseUrl}/uploads/${trimmed}`;
+        return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerImagesField = [r.owner1_image, r.owner2_image, r.owner3_image, r.owner4_image, r.owner5_image, r.owner6_image, r.owner7_image, r.owner8_image, r.owner9_image, r.owner10_image].filter(f => f && f.trim().length > 0);
       const ownerImageUrls = ownerImagesField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
         if (trimmed.startsWith('http')) return trimmed;
-        return `${baseUrl}/uploads/${trimmed}`;
+        return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
         .filter(d => d && d.trim().length > 0)
@@ -597,21 +597,21 @@ app.get('/api/surveys/:id', async (req, res) => {
       if (!f) return f;
       const trimmed = String(f).trim();
       if (trimmed.startsWith('http')) return trimmed;
-      return `${baseUrl}/uploads/${trimmed}`;
+      return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
     });
     const documentsField = [r.document1, r.document2, r.document3, r.document4, r.document5, r.document6, r.document7, r.document8, r.document9, r.document10].filter(f => f && f.trim().length > 0);
     const documentUrls = documentsField.map(f => {
       if (!f) return f;
       const trimmed = String(f).trim();
       if (trimmed.startsWith('http')) return trimmed;
-      return `${baseUrl}/uploads/${trimmed}`;
+      return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
     });
     const ownerImagesField = [r.owner1_image, r.owner2_image, r.owner3_image, r.owner4_image, r.owner5_image, r.owner6_image, r.owner7_image, r.owner8_image, r.owner9_image, r.owner10_image].filter(f => f && f.trim().length > 0);
     const ownerImageUrls = ownerImagesField.map(f => {
       if (!f) return f;
       const trimmed = String(f).trim();
       if (trimmed.startsWith('http')) return trimmed;
-      return `${baseUrl}/uploads/${trimmed}`;
+      return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
     });
     const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
       .filter(d => d && d.trim().length > 0)
