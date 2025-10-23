@@ -186,6 +186,16 @@ async function ensureSurveysTable() {
         owner8_details NVARCHAR(MAX),
         owner9_details NVARCHAR(MAX),
         owner10_details NVARCHAR(MAX),
+        owner1_document NVARCHAR(255),
+        owner2_document NVARCHAR(255),
+        owner3_document NVARCHAR(255),
+        owner4_document NVARCHAR(255),
+        owner5_document NVARCHAR(255),
+        owner6_document NVARCHAR(255),
+        owner7_document NVARCHAR(255),
+        owner8_document NVARCHAR(255),
+        owner9_document NVARCHAR(255),
+        owner10_document NVARCHAR(255),
         propertySituation NVARCHAR(100) DEFAULT '',
         createdAt DATETIME DEFAULT GETDATE(),
         status NVARCHAR(50) DEFAULT 'Pending'
@@ -366,7 +376,7 @@ app.post('/api/surveys',
 );
 
 // Multipart upload with files
-app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, { name: 'ownerImages', maxCount: 5 }, { name: 'documents', maxCount: 10 }]), async (req, res) => {
+app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, { name: 'ownerImages', maxCount: 5 }, { name: 'documents', maxCount: 10 }, { name: 'ownerDocuments', maxCount: 10 }]), async (req, res) => {
   try {
     // fields are in req.body
     const { email, name, mobile, ward, road, propertyType, ownershipType, numberOfFloors, plotArea, builtUpArea, geoLat, geoLng, propertySituation } = req.body;
@@ -476,6 +486,7 @@ app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, 
     const images = files.images || [];
     const ownerImages = files.ownerImages || [];
     const documents = files.documents || [];
+    const ownerDocuments = files.ownerDocuments || [];
     if (!email || !name) return res.status(400).json({ error: 'Missing required fields' });
     if (images.length < 2) return res.status(400).json({ error: 'At least 2 property images required' });
     let filenames = images.map(f => f.filename).join(',');
@@ -498,21 +509,20 @@ app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, 
     let owner7Image = ownerImages[6]?.filename || '';
     let owner8Image = ownerImages[7]?.filename || '';
     let owner9Image = ownerImages[8]?.filename || '';
-    let owner10Image = ownerImages[9]?.filename || '';
-  let owner1Details = ownerDetails[0] ? JSON.stringify(ownerDetails[0]) : '';
-  let owner2Details = ownerDetails[1] ? JSON.stringify(ownerDetails[1]) : '';
-  let owner3Details = ownerDetails[2] ? JSON.stringify(ownerDetails[2]) : '';
-  let owner4Details = ownerDetails[3] ? JSON.stringify(ownerDetails[3]) : '';
-  let owner5Details = ownerDetails[4] ? JSON.stringify(ownerDetails[4]) : '';
-  let owner6Details = ownerDetails[5] ? JSON.stringify(ownerDetails[5]) : '';
-  let owner7Details = ownerDetails[6] ? JSON.stringify(ownerDetails[6]) : '';
-  let owner8Details = ownerDetails[7] ? JSON.stringify(ownerDetails[7]) : '';
-  let owner9Details = ownerDetails[8] ? JSON.stringify(ownerDetails[8]) : '';
-  let owner10Details = ownerDetails[9] ? JSON.stringify(ownerDetails[9]) : '';
+    let ownerDocument1 = ownerDocuments[0]?.filename || '';
+    let ownerDocument2 = ownerDocuments[1]?.filename || '';
+    let ownerDocument3 = ownerDocuments[2]?.filename || '';
+    let ownerDocument4 = ownerDocuments[3]?.filename || '';
+    let ownerDocument5 = ownerDocuments[4]?.filename || '';
+    let ownerDocument6 = ownerDocuments[5]?.filename || '';
+    let ownerDocument7 = ownerDocuments[6]?.filename || '';
+    let ownerDocument8 = ownerDocuments[7]?.filename || '';
+    let ownerDocument9 = ownerDocuments[8]?.filename || '';
+    let ownerDocument10 = ownerDocuments[9]?.filename || '';
     const sql = await connectDb();
     await sql.query`
-      INSERT INTO Surveys (citizenEmail, name, mobile, ward, road, propertyType, ownershipType, numberOfFloors, plotArea, builtUpArea, geoLat, geoLng, images, document1, document2, document3, document4, document5, document6, document7, document8, document9, document10, owner1_image, owner2_image, owner3_image, owner4_image, owner5_image, owner6_image, owner7_image, owner8_image, owner9_image, owner10_image, owner1_details, owner2_details, owner3_details, owner4_details, owner5_details, owner6_details, owner7_details, owner8_details, owner9_details, owner10_details, propertySituation)
-      VALUES (${email}, ${name}, ${mobile}, ${ward}, ${road}, ${propertyType}, ${ownershipType}, ${numberOfFloors}, ${plotArea}, ${builtUpArea}, ${geoLat}, ${geoLng}, ${filenames}, ${document1}, ${document2}, ${document3}, ${document4}, ${document5}, ${document6}, ${document7}, ${document8}, ${document9}, ${document10}, ${owner1Image}, ${owner2Image}, ${owner3Image}, ${owner4Image}, ${owner5Image}, ${owner6Image}, ${owner7Image}, ${owner8Image}, ${owner9Image}, ${owner10Image}, ${owner1Details}, ${owner2Details}, ${owner3Details}, ${owner4Details}, ${owner5Details}, ${owner6Details}, ${owner7Details}, ${owner8Details}, ${owner9Details}, ${owner10Details}, ${propertySituation || ''})
+      INSERT INTO Surveys (citizenEmail, name, mobile, ward, road, propertyType, ownershipType, numberOfFloors, plotArea, builtUpArea, geoLat, geoLng, images, document1, document2, document3, document4, document5, document6, document7, document8, document9, document10, owner1_image, owner2_image, owner3_image, owner4_image, owner5_image, owner6_image, owner7_image, owner8_image, owner9_image, owner10_image, owner1_details, owner2_details, owner3_details, owner4_details, owner5_details, owner6_details, owner7_details, owner8_details, owner9_details, owner10_details, owner1_document, owner2_document, owner3_document, owner4_document, owner5_document, owner6_document, owner7_document, owner8_document, owner9_document, owner10_document, propertySituation)
+      VALUES (${email}, ${name}, ${mobile}, ${ward}, ${road}, ${propertyType}, ${ownershipType}, ${numberOfFloors}, ${plotArea}, ${builtUpArea}, ${geoLat}, ${geoLng}, ${filenames}, ${document1}, ${document2}, ${document3}, ${document4}, ${document5}, ${document6}, ${document7}, ${document8}, ${document9}, ${document10}, ${owner1Image}, ${owner2Image}, ${owner3Image}, ${owner4Image}, ${owner5Image}, ${owner6Image}, ${owner7Image}, ${owner8Image}, ${owner9Image}, ${owner10Image}, ${owner1Details}, ${owner2Details}, ${owner3Details}, ${owner4Details}, ${owner5Details}, ${owner6Details}, ${owner7Details}, ${owner8Details}, ${owner9Details}, ${owner10Details}, ${ownerDocument1}, ${ownerDocument2}, ${ownerDocument3}, ${ownerDocument4}, ${ownerDocument5}, ${ownerDocument6}, ${ownerDocument7}, ${ownerDocument8}, ${ownerDocument9}, ${ownerDocument10}, ${propertySituation || ''})
     `;
     res.json({ success: true });
   } catch (err) {
@@ -583,10 +593,17 @@ app.get('/api/surveys', async (req, res) => {
         if (trimmed.startsWith('http')) return trimmed;
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
+      const ownerDocumentsField = [r.owner1_document, r.owner2_document, r.owner3_document, r.owner4_document, r.owner5_document, r.owner6_document, r.owner7_document, r.owner8_document, r.owner9_document, r.owner10_document].filter(f => f && f.trim().length > 0);
+      const ownerDocumentUrls = ownerDocumentsField.map(f => {
+        if (!f) return f;
+        const trimmed = String(f).trim();
+        if (trimmed.startsWith('http')) return trimmed;
+        return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
+      });
       const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
         .filter(d => d && d.trim().length > 0)
         .map(d => JSON.parse(d));
-      return { ...r, images: imagesArr, imageUrls, documents: documentsField, documentUrls, ownerImages: ownerImagesField, ownerImageUrls, ownerDetails: ownerDetailsArray, createdAt: r.createdAt ? (new Date(r.createdAt)).toISOString() : null };
+      return { ...r, images: imagesArr, imageUrls, documents: documentsField, documentUrls, ownerImages: ownerImagesField, ownerImageUrls, ownerDocuments: ownerDocumentsField, ownerDocumentUrls, ownerDetails: ownerDetailsArray, createdAt: r.createdAt ? (new Date(r.createdAt)).toISOString() : null };
     });
     res.json({ success: true, surveys });
   } catch (err) {
