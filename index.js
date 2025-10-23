@@ -562,6 +562,16 @@ app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, 
     let ownerOtherDoc8 = ownerOtherDocs[7]?.filename || '';
     let ownerOtherDoc9 = ownerOtherDocs[8]?.filename || '';
     let ownerOtherDoc10 = ownerOtherDocs[9]?.filename || '';
+    let owner1Details = ownerDetails[0] ? JSON.stringify(ownerDetails[0]) : '';
+    let owner2Details = ownerDetails[1] ? JSON.stringify(ownerDetails[1]) : '';
+    let owner3Details = ownerDetails[2] ? JSON.stringify(ownerDetails[2]) : '';
+    let owner4Details = ownerDetails[3] ? JSON.stringify(ownerDetails[3]) : '';
+    let owner5Details = ownerDetails[4] ? JSON.stringify(ownerDetails[4]) : '';
+    let owner6Details = ownerDetails[5] ? JSON.stringify(ownerDetails[5]) : '';
+    let owner7Details = ownerDetails[6] ? JSON.stringify(ownerDetails[6]) : '';
+    let owner8Details = ownerDetails[7] ? JSON.stringify(ownerDetails[7]) : '';
+    let owner9Details = ownerDetails[8] ? JSON.stringify(ownerDetails[8]) : '';
+    let owner10Details = ownerDetails[9] ? JSON.stringify(ownerDetails[9]) : '';
     const sql = await connectDb();
     await sql.query`
       INSERT INTO Surveys (citizenEmail, name, mobile, ward, road, propertyType, ownershipType, numberOfFloors, plotArea, builtUpArea, geoLat, geoLng, images, document1, document2, document3, document4, document5, document6, document7, document8, document9, document10, owner1_image, owner2_image, owner3_image, owner4_image, owner5_image, owner6_image, owner7_image, owner8_image, owner9_image, owner10_image, owner1_details, owner2_details, owner3_details, owner4_details, owner5_details, owner6_details, owner7_details, owner8_details, owner9_details, owner10_details, owner1_aadhaar_doc, owner2_aadhaar_doc, owner3_aadhaar_doc, owner4_aadhaar_doc, owner5_aadhaar_doc, owner6_aadhaar_doc, owner7_aadhaar_doc, owner8_aadhaar_doc, owner9_aadhaar_doc, owner10_aadhaar_doc, owner1_pan_doc, owner2_pan_doc, owner3_pan_doc, owner4_pan_doc, owner5_pan_doc, owner6_pan_doc, owner7_pan_doc, owner8_pan_doc, owner9_pan_doc, owner10_pan_doc, owner1_other_doc, owner2_other_doc, owner3_other_doc, owner4_other_doc, owner5_other_doc, owner6_other_doc, owner7_other_doc, owner8_other_doc, owner9_other_doc, owner10_other_doc, propertySituation)
