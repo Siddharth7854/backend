@@ -16,6 +16,10 @@ const JWT_SECRET = process.env.JWT_SECRET || 'secret_dev_change_me';
 
 const app = express();
 app.use(cors());
+// If running behind a proxy (Render, Heroku, etc) enable trust proxy so req.protocol
+// reflects the external protocol (https). We still defensively prefer X-Forwarded-Proto
+// when constructing URLs below.
+app.set('trust proxy', true);
 // Increase JSON/urlencoded body size limit to allow larger payloads if needed.
 // Multipart uploads should use /api/surveys/upload (multer) and not hit these parsers.
 app.use(bodyParser.json({ limit: '50mb' }));
@@ -536,7 +540,9 @@ app.get('/api/surveys', async (req, res) => {
       result = await sql.query`SELECT * FROM Surveys ORDER BY createdAt DESC`;
     }
     // Build full image URLs for uploaded filenames so the frontend can load thumbnails
-    const baseUrl = req.protocol + '://' + req.get('host');
+  // Prefer forwarded proto when behind proxies (Render sets X-Forwarded-Proto)
+  const proto = (req.get('X-Forwarded-Proto') || req.protocol) + '';
+  const baseUrl = proto + '://' + req.get('host');
     const surveys = result.recordset.map(r => {
       const imagesField = r.images || '';
       const imagesArr = typeof imagesField === 'string'
@@ -585,7 +591,8 @@ app.get('/api/surveys/:id', async (req, res) => {
     const imagesArr = typeof imagesField === 'string'
       ? imagesField.split(',').map(s => s.trim()).filter(s => s.length > 0)
       : (Array.isArray(imagesField) ? imagesField : []);
-    const baseUrl = req.protocol + '://' + req.get('host');
+  const proto = (req.get('X-Forwarded-Proto') || req.protocol) + '';
+  const baseUrl = proto + '://' + req.get('host');
     const imageUrls = imagesArr.map(f => {
       if (!f) return f;
       const trimmed = String(f).trim();
