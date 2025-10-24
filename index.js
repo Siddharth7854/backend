@@ -79,6 +79,7 @@ async function uploadToFirebase(file, folder = 'uploads') {
   });
   await fileRef.makePublic();
   const publicUrl = `https://storage.googleapis.com/${bucket.name}/${folder}/${fileName}`;
+  console.log(`Uploaded file to Firebase: ${publicUrl}`);
   return publicUrl;
 }
 
