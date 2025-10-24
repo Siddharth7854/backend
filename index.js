@@ -9,10 +9,24 @@ import { connectDb } from './db.js';
 import multer from 'multer';
 import fs from 'fs';
 import path from 'path';
+import admin from 'firebase-admin';
 
 dotenv.config();
 
 const JWT_SECRET = process.env.JWT_SECRET || 'secret_dev_change_me';
+
+// Firebase Admin initialization
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_JSON ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_JSON) : (process.env.FIREBASE_SERVICE_ACCOUNT_PATH ? require(process.env.FIREBASE_SERVICE_ACCOUNT_PATH) : null);
+let firebaseStorage = null;
+if (serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+    storageBucket: 'greivance-app2.firebasestorage.app'
+  });
+  firebaseStorage = admin.storage();
+} else {
+  console.warn('Firebase service account not configured. File uploads will fail.');
+}
 
 const app = express();
 app.use(cors({
@@ -47,18 +61,26 @@ app.use('/uploads', (req, res, next) => {
   }
 }, express.static(uploadsDir));
 
-// Multer setup for file uploads
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadsDir);
-  },
-  filename: function (req, file, cb) {
-    const unique = Date.now() + '_' + Math.round(Math.random() * 1e9);
-    cb(null, unique + '_' + file.originalname);
-  }
-});
+// Multer setup for file uploads - using memory storage for Firebase upload
+const storage = multer.memoryStorage();
 // Allow up to 20 files total (images + ownerImages + documents). Per-field maxCounts are set on upload.fields.
 const upload = multer({ storage, limits: { files: 20, fileSize: 10 * 1024 * 1024 } });
+
+// Helper to upload file to Firebase Storage
+async function uploadToFirebase(file, folder = 'uploads') {
+  if (!firebaseStorage) throw new Error('Firebase not initialized');
+  const bucket = firebaseStorage.bucket();
+  const fileName = Date.now() + '_' + Math.round(Math.random() * 1e9) + '_' + file.originalname;
+  const fileRef = bucket.file(`${folder}/${fileName}`);
+  await fileRef.save(file.buffer, {
+    metadata: {
+      contentType: file.mimetype,
+    },
+  });
+  await fileRef.makePublic();
+  const publicUrl = `https://storage.googleapis.com/${bucket.name}/${folder}/${fileName}`;
+  return publicUrl;
+}
 
 // Ensure Citizens table exists
 async function ensureCitizensTable() {
@@ -536,59 +558,68 @@ app.post('/api/surveys/upload', upload.fields([{ name: 'images', maxCount: 5 }, 
     const ownerAadhaarDocs = files.ownerAadhaarDocs || [];
     const ownerPanDocs = files.ownerPanDocs || [];
     const ownerOtherDocs = files.ownerOtherDocs || [];
+
+    // Upload all files to Firebase and collect URLs
+    const imageUrls = await Promise.all(images.map(file => uploadToFirebase(file, 'survey-images')));
+    const ownerImageUrls = await Promise.all(ownerImages.map(file => uploadToFirebase(file, 'owner-images')));
+    const documentUrls = await Promise.all(documents.map(file => uploadToFirebase(file, 'documents')));
+    const ownerAadhaarDocUrls = await Promise.all(ownerAadhaarDocs.map(file => uploadToFirebase(file, 'owner-aadhaar-docs')));
+    const ownerPanDocUrls = await Promise.all(ownerPanDocs.map(file => uploadToFirebase(file, 'owner-pan-docs')));
+    const ownerOtherDocUrls = await Promise.all(ownerOtherDocs.map(file => uploadToFirebase(file, 'owner-other-docs')));
+
     if (!email || !name) return res.status(400).json({ error: 'Missing required fields' });
-    if (images.length < 2) return res.status(400).json({ error: 'At least 2 property images required' });
-    let filenames = images.map(f => f.filename).join(',');
-    let document1 = documents[0]?.filename || '';
-    let document2 = documents[1]?.filename || '';
-    let document3 = documents[2]?.filename || '';
-    let document4 = documents[3]?.filename || '';
-    let document5 = documents[4]?.filename || '';
-    let document6 = documents[5]?.filename || '';
-    let document7 = documents[6]?.filename || '';
-    let document8 = documents[7]?.filename || '';
-    let document9 = documents[8]?.filename || '';
-    let document10 = documents[9]?.filename || '';
-    let owner1Image = ownerImages[0]?.filename || '';
-    let owner2Image = ownerImages[1]?.filename || '';
-    let owner3Image = ownerImages[2]?.filename || '';
-    let owner4Image = ownerImages[3]?.filename || '';
-    let owner5Image = ownerImages[4]?.filename || '';
-    let owner6Image = ownerImages[5]?.filename || '';
-    let owner7Image = ownerImages[6]?.filename || '';
-    let owner8Image = ownerImages[7]?.filename || '';
-    let owner9Image = ownerImages[8]?.filename || '';
-    let owner10Image = ownerImages[9]?.filename || '';
-    let ownerAadhaarDoc1 = ownerAadhaarDocs[0]?.filename || '';
-    let ownerAadhaarDoc2 = ownerAadhaarDocs[1]?.filename || '';
-    let ownerAadhaarDoc3 = ownerAadhaarDocs[2]?.filename || '';
-    let ownerAadhaarDoc4 = ownerAadhaarDocs[3]?.filename || '';
-    let ownerAadhaarDoc5 = ownerAadhaarDocs[4]?.filename || '';
-    let ownerAadhaarDoc6 = ownerAadhaarDocs[5]?.filename || '';
-    let ownerAadhaarDoc7 = ownerAadhaarDocs[6]?.filename || '';
-    let ownerAadhaarDoc8 = ownerAadhaarDocs[7]?.filename || '';
-    let ownerAadhaarDoc9 = ownerAadhaarDocs[8]?.filename || '';
-    let ownerAadhaarDoc10 = ownerAadhaarDocs[9]?.filename || '';
-    let ownerPanDoc1 = ownerPanDocs[0]?.filename || '';
-    let ownerPanDoc2 = ownerPanDocs[1]?.filename || '';
-    let ownerPanDoc3 = ownerPanDocs[2]?.filename || '';
-    let ownerPanDoc4 = ownerPanDocs[3]?.filename || '';
-    let ownerPanDoc5 = ownerPanDocs[4]?.filename || '';
-    let ownerPanDoc6 = ownerPanDocs[5]?.filename || '';
-    let ownerPanDoc7 = ownerPanDocs[6]?.filename || '';
-    let ownerPanDoc8 = ownerPanDocs[7]?.filename || '';
-    let ownerPanDoc9 = ownerPanDocs[8]?.filename || '';
-    let ownerPanDoc10 = ownerPanDocs[9]?.filename || '';
-    let ownerOtherDoc1 = ownerOtherDocs[0]?.filename || '';
-    let ownerOtherDoc2 = ownerOtherDocs[1]?.filename || '';
-    let ownerOtherDoc3 = ownerOtherDocs[2]?.filename || '';
-    let ownerOtherDoc4 = ownerOtherDocs[3]?.filename || '';
-    let ownerOtherDoc5 = ownerOtherDocs[4]?.filename || '';
-    let ownerOtherDoc6 = ownerOtherDocs[5]?.filename || '';
-    let ownerOtherDoc7 = ownerOtherDocs[6]?.filename || '';
-    let ownerOtherDoc8 = ownerOtherDocs[7]?.filename || '';
-    let ownerOtherDoc9 = ownerOtherDocs[8]?.filename || '';
-    let ownerOtherDoc10 = ownerOtherDocs[9]?.filename || '';
+    if (imageUrls.length < 2) return res.status(400).json({ error: 'At least 2 property images required' });
+    let filenames = imageUrls.join(',');
+    let document1 = documentUrls[0] || '';
+    let document2 = documentUrls[1] || '';
+    let document3 = documentUrls[2] || '';
+    let document4 = documentUrls[3] || '';
+    let document5 = documentUrls[4] || '';
+    let document6 = documentUrls[5] || '';
+    let document7 = documentUrls[6] || '';
+    let document8 = documentUrls[7] || '';
+    let document9 = documentUrls[8] || '';
+    let document10 = documentUrls[9] || '';
+    let owner1Image = ownerImageUrls[0] || '';
+    let owner2Image = ownerImageUrls[1] || '';
+    let owner3Image = ownerImageUrls[2] || '';
+    let owner4Image = ownerImageUrls[3] || '';
+    let owner5Image = ownerImageUrls[4] || '';
+    let owner6Image = ownerImageUrls[5] || '';
+    let owner7Image = ownerImageUrls[6] || '';
+    let owner8Image = ownerImageUrls[7] || '';
+    let owner9Image = ownerImageUrls[8] || '';
+    let owner10Image = ownerImageUrls[9] || '';
+    let ownerAadhaarDoc1 = ownerAadhaarDocUrls[0] || '';
+    let ownerAadhaarDoc2 = ownerAadhaarDocUrls[1] || '';
+    let ownerAadhaarDoc3 = ownerAadhaarDocUrls[2] || '';
+    let ownerAadhaarDoc4 = ownerAadhaarDocUrls[3] || '';
+    let ownerAadhaarDoc5 = ownerAadhaarDocUrls[4] || '';
+    let ownerAadhaarDoc6 = ownerAadhaarDocUrls[5] || '';
+    let ownerAadhaarDoc7 = ownerAadhaarDocUrls[6] || '';
+    let ownerAadhaarDoc8 = ownerAadhaarDocUrls[7] || '';
+    let ownerAadhaarDoc9 = ownerAadhaarDocUrls[8] || '';
+    let ownerAadhaarDoc10 = ownerAadhaarDocUrls[9] || '';
+    let ownerPanDoc1 = ownerPanDocUrls[0] || '';
+    let ownerPanDoc2 = ownerPanDocUrls[1] || '';
+    let ownerPanDoc3 = ownerPanDocUrls[2] || '';
+    let ownerPanDoc4 = ownerPanDocUrls[3] || '';
+    let ownerPanDoc5 = ownerPanDocUrls[4] || '';
+    let ownerPanDoc6 = ownerPanDocUrls[5] || '';
+    let ownerPanDoc7 = ownerPanDocUrls[6] || '';
+    let ownerPanDoc8 = ownerPanDocUrls[7] || '';
+    let ownerPanDoc9 = ownerPanDocUrls[8] || '';
+    let ownerPanDoc10 = ownerPanDocUrls[9] || '';
+    let ownerOtherDoc1 = ownerOtherDocUrls[0] || '';
+    let ownerOtherDoc2 = ownerOtherDocUrls[1] || '';
+    let ownerOtherDoc3 = ownerOtherDocUrls[2] || '';
+    let ownerOtherDoc4 = ownerOtherDocUrls[3] || '';
+    let ownerOtherDoc5 = ownerOtherDocUrls[4] || '';
+    let ownerOtherDoc6 = ownerOtherDocUrls[5] || '';
+    let ownerOtherDoc7 = ownerOtherDocUrls[6] || '';
+    let ownerOtherDoc8 = ownerOtherDocUrls[7] || '';
+    let ownerOtherDoc9 = ownerOtherDocUrls[8] || '';
+    let ownerOtherDoc10 = ownerOtherDocUrls[9] || '';
     let owner1Details = ownerDetails[0] ? JSON.stringify(ownerDetails[0]) : '';
     let owner2Details = ownerDetails[1] ? JSON.stringify(ownerDetails[1]) : '';
     let owner3Details = ownerDetails[2] ? JSON.stringify(ownerDetails[2]) : '';
