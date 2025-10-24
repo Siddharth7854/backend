@@ -18,9 +18,17 @@ async function updateDatabaseUrls() {
 
       // Update main images
       if (survey.images) {
-        const imageUrls = survey.images.split(',').map(filename =>
-          filename.trim() ? `https://storage.googleapis.com/greivance-app2.firebasestorage.app/uploads/${filename.trim()}` : ''
-        ).filter(url => url).join(',');
+        const imageUrls = survey.images.split(',').map(filename => {
+          const trimmed = filename.trim();
+          if (trimmed.startsWith('http')) {
+            // Check if it's a double URL and fix it
+            const doubleUrlPattern = /https:\/\/storage\.googleapis\.com\/[^\/]+\/uploads\/(https:\/\/storage\.googleapis\.com\/.+)/;
+            const match = trimmed.match(doubleUrlPattern);
+            if (match) return match[1]; // Extract the correct URL
+            return trimmed; // Already correct
+          }
+          return `https://storage.googleapis.com/greivance-app2.firebasestorage.app/uploads/${trimmed}`;
+        }).filter(url => url).join(',');
         updates.push(`images = '${imageUrls}'`);
       }
 
@@ -28,7 +36,18 @@ async function updateDatabaseUrls() {
       for (let i = 1; i <= 5; i++) {
         const field = `owner${i}_image`;
         if (survey[field]) {
-          updates.push(`${field} = 'https://storage.googleapis.com/greivance-app2.firebasestorage.app/uploads/${survey[field]}'`);
+          const trimmed = survey[field].trim();
+          if (trimmed.startsWith('http')) {
+            // Check if it's a double URL and fix it
+            const doubleUrlPattern = /https:\/\/storage\.googleapis\.com\/[^\/]+\/uploads\/(https:\/\/storage\.googleapis\.com\/.+)/;
+            const match = trimmed.match(doubleUrlPattern);
+            if (match) {
+              updates.push(`${field} = '${match[1]}'`); // Extract the correct URL
+            }
+            // If not double, leave as-is
+          } else {
+            updates.push(`${field} = 'https://storage.googleapis.com/greivance-app2.firebasestorage.app/uploads/${trimmed}'`);
+          }
         }
       }
 
