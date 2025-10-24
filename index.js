@@ -690,6 +690,8 @@ app.get('/api/surveys', async (req, res) => {
         if (trimmed.startsWith('http')) return trimmed;
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
+      console.log(`Survey ${r.id} images:`, imagesArr);
+      console.log(`Survey ${r.id} imageUrls:`, imageUrls);
       const documentsField = [r.document1, r.document2, r.document3, r.document4, r.document5, r.document6, r.document7, r.document8, r.document9, r.document10].filter(f => f && f.trim().length > 0);
       const documentUrls = documentsField.map(f => {
         if (!f) return f;
