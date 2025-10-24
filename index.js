@@ -88,6 +88,21 @@ async function uploadToFirebase(file, folder = 'uploads') {
   return publicUrl;
 }
 
+// Helper to normalize URLs (fix double Firebase URLs)
+function normalizeUrl(url) {
+  if (!url || typeof url !== 'string') return url;
+  // Handle double Firebase URLs
+  const firebasePattern = /https:\/\/storage\.googleapis\.com\/[^\/]+\/uploads\/https:\/\/storage\.googleapis\.com\//;
+  const match = url.match(firebasePattern);
+  if (match) {
+    const start = match.index + match[0].length;
+    const corrected = 'https://storage.googleapis.com/' + url.substring(start);
+    console.log(`Backend normalized double URL: ${url} -> ${corrected}`);
+    return corrected;
+  }
+  return url;
+}
+
 // Ensure Citizens table exists
 async function ensureCitizensTable() {
   try {
@@ -693,7 +708,7 @@ app.get('/api/surveys', async (req, res) => {
       const imageUrls = imagesArr.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       console.log(`Survey ${r.id} images:`, imagesArr);
@@ -702,42 +717,42 @@ app.get('/api/surveys', async (req, res) => {
       const documentUrls = documentsField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerImagesField = [r.owner1_image, r.owner2_image, r.owner3_image, r.owner4_image, r.owner5_image, r.owner6_image, r.owner7_image, r.owner8_image, r.owner9_image, r.owner10_image].filter(f => f && f.trim().length > 0);
       const ownerImageUrls = ownerImagesField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerDocumentsField = [r.owner1_document, r.owner2_document, r.owner3_document, r.owner4_document, r.owner5_document, r.owner6_document, r.owner7_document, r.owner8_document, r.owner9_document, r.owner10_document].filter(f => f && f.trim().length > 0);
       const ownerDocumentUrls = ownerDocumentsField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerAadhaarDocsField = [r.owner1_aadhaar_doc, r.owner2_aadhaar_doc, r.owner3_aadhaar_doc, r.owner4_aadhaar_doc, r.owner5_aadhaar_doc, r.owner6_aadhaar_doc, r.owner7_aadhaar_doc, r.owner8_aadhaar_doc, r.owner9_aadhaar_doc, r.owner10_aadhaar_doc].filter(f => f && f.trim().length > 0);
       const ownerAadhaarDocUrls = ownerAadhaarDocsField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerPanDocsField = [r.owner1_pan_doc, r.owner2_pan_doc, r.owner3_pan_doc, r.owner4_pan_doc, r.owner5_pan_doc, r.owner6_pan_doc, r.owner7_pan_doc, r.owner8_pan_doc, r.owner9_pan_doc, r.owner10_pan_doc].filter(f => f && f.trim().length > 0);
       const ownerPanDocUrls = ownerPanDocsField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerOtherDocsField = [r.owner1_other_doc, r.owner2_other_doc, r.owner3_other_doc, r.owner4_other_doc, r.owner5_other_doc, r.owner6_other_doc, r.owner7_other_doc, r.owner8_other_doc, r.owner9_other_doc, r.owner10_other_doc].filter(f => f && f.trim().length > 0);
       const ownerOtherDocUrls = ownerOtherDocsField.map(f => {
         if (!f) return f;
         const trimmed = String(f).trim();
-        if (trimmed.startsWith('http')) return trimmed;
+        if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
         return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
       });
       const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
@@ -768,21 +783,21 @@ app.get('/api/surveys/:id', async (req, res) => {
     const imageUrls = imagesArr.map(f => {
       if (!f) return f;
       const trimmed = String(f).trim();
-      if (trimmed.startsWith('http')) return trimmed;
+      if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
       return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
     });
     const documentsField = [r.document1, r.document2, r.document3, r.document4, r.document5, r.document6, r.document7, r.document8, r.document9, r.document10].filter(f => f && f.trim().length > 0);
     const documentUrls = documentsField.map(f => {
       if (!f) return f;
       const trimmed = String(f).trim();
-      if (trimmed.startsWith('http')) return trimmed;
+      if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
       return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
     });
     const ownerImagesField = [r.owner1_image, r.owner2_image, r.owner3_image, r.owner4_image, r.owner5_image, r.owner6_image, r.owner7_image, r.owner8_image, r.owner9_image, r.owner10_image].filter(f => f && f.trim().length > 0);
     const ownerImageUrls = ownerImagesField.map(f => {
       if (!f) return f;
       const trimmed = String(f).trim();
-      if (trimmed.startsWith('http')) return trimmed;
+      if (trimmed.startsWith('http')) return normalizeUrl(trimmed);
       return `${baseUrl}/uploads/${encodeURIComponent(trimmed)}`;
     });
     const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
