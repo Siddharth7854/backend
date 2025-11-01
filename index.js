@@ -861,7 +861,7 @@ app.get('/api/surveys', async (req, res) => {
       const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
         .filter(d => d && d.trim().length > 0)
         .map(d => JSON.parse(d));
-      return { ...r, images: imagesArr, imageUrls, documents: documentsField, documentUrls, ownerImages: ownerImagesField, ownerImageUrls, ownerDocuments: ownerDocumentsField, ownerDocumentUrls, ownerAadhaarDocs: ownerAadhaarDocsField, ownerAadhaarDocUrls, ownerPanDocs: ownerPanDocsField, ownerPanDocUrls, ownerOtherDocs: ownerOtherDocsField, ownerOtherDocUrls, ownerDetails: ownerDetailsArray, createdAt: r.createdAt ? (new Date(r.createdAt)).toISOString() : null };
+      return { ...r, images: imagesArr, imageUrls, documents: documentsField, documentUrls, ownerImages: ownerImagesField, ownerImageUrls, ownerDocuments: ownerDocumentsField, ownerDocumentUrls, ownerAadhaarDocs: ownerAadhaarDocsField, ownerAadhaarDocUrls, ownerPanDocs: ownerPanDocsField, ownerPanDocUrls, ownerOtherDocs: ownerOtherDocsField, ownerOtherDocUrls, ownerDetails: ownerDetailsArray, createdAt: r.createdAt ? r.createdAt.toISOString() : null };
     });
     res.json({ success: true, surveys });
   } catch (err) {
@@ -906,7 +906,7 @@ app.get('/api/surveys/:id', async (req, res) => {
     const ownerDetailsArray = [r.owner1_details, r.owner2_details, r.owner3_details, r.owner4_details, r.owner5_details, r.owner6_details, r.owner7_details, r.owner8_details, r.owner9_details, r.owner10_details]
       .filter(d => d && d.trim().length > 0)
       .map(d => JSON.parse(d));
-    const survey = { ...r, images: imagesArr, imageUrls, documents: documentsField, documentUrls, ownerImages: ownerImagesField, ownerImageUrls, ownerDetails: ownerDetailsArray, createdAt: r.createdAt ? (new Date(r.createdAt)).toISOString() : null };
+    const survey = { ...r, images: imagesArr, imageUrls, documents: documentsField, documentUrls, ownerImages: ownerImagesField, ownerImageUrls, ownerDetails: ownerDetailsArray, createdAt: r.createdAt ? r.createdAt.toISOString() : null };
     res.json({ success: true, survey });
   } catch (err) {
     res.status(500).json({ error: err.message });
