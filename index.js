@@ -685,6 +685,135 @@ app.post('/api/surveys/:id/reject', adminAuth, async (req, res) => {
   }
 });
 
+// Edit/Update survey endpoint
+app.put('/api/surveys/:id', upload.fields([{ name: 'images', maxCount: 5 }, { name: 'ownerImages', maxCount: 5 }, { name: 'documents', maxCount: 10 }, { name: 'ownerAadhaarDocs', maxCount: 10 }, { name: 'ownerPanDocs', maxCount: 10 }, { name: 'ownerOtherDocs', maxCount: 10 }]), async (req, res) => {
+  const id = req.params.id;
+  try {
+    const sql = await connectDb();
+    
+    // Check if survey exists
+    const existing = await sql.query`SELECT * FROM Surveys WHERE id = ${id}`;
+    if (!existing.recordset || existing.recordset.length === 0) {
+      return res.status(404).json({ error: 'Survey not found' });
+    }
+
+    const {
+      citizenEmail, mobile, name, ward, propertyType, ownershipType, road, propertySituation,
+      numberOfFloors, plotArea, builtUpArea, geoLat, geoLng, ownerDetails
+    } = req.body;
+
+    // Upload new files to Firebase if provided
+    let imageUrls = [];
+    let ownerImageUrls = [];
+    let documentUrls = [];
+    let ownerAadhaarDocUrls = [];
+    let ownerPanDocUrls = [];
+    let ownerOtherDocUrls = [];
+
+    if (req.files) {
+      if (req.files.images) {
+        for (const file of req.files.images) {
+          const url = await uploadToFirebase(file, 'uploads');
+          imageUrls.push(url);
+        }
+      }
+      if (req.files.ownerImages) {
+        for (const file of req.files.ownerImages) {
+          const url = await uploadToFirebase(file, 'uploads');
+          ownerImageUrls.push(url);
+        }
+      }
+      if (req.files.documents) {
+        for (const file of req.files.documents) {
+          const url = await uploadToFirebase(file, 'uploads');
+          documentUrls.push(url);
+        }
+      }
+      if (req.files.ownerAadhaarDocs) {
+        for (const file of req.files.ownerAadhaarDocs) {
+          const url = await uploadToFirebase(file, 'uploads');
+          ownerAadhaarDocUrls.push(url);
+        }
+      }
+      if (req.files.ownerPanDocs) {
+        for (const file of req.files.ownerPanDocs) {
+          const url = await uploadToFirebase(file, 'uploads');
+          ownerPanDocUrls.push(url);
+        }
+      }
+      if (req.files.ownerOtherDocs) {
+        for (const file of req.files.ownerOtherDocs) {
+          const url = await uploadToFirebase(file, 'uploads');
+          ownerOtherDocUrls.push(url);
+        }
+      }
+    }
+
+    // Merge with existing URLs if no new files uploaded
+    const oldData = existing.recordset[0];
+    if (imageUrls.length === 0 && oldData.imageUrls) {
+      imageUrls = oldData.imageUrls.split(',').filter(u => u.trim());
+    }
+    if (ownerImageUrls.length === 0 && oldData.ownerImageUrls) {
+      ownerImageUrls = oldData.ownerImageUrls.split(',').filter(u => u.trim());
+    }
+    if (documentUrls.length === 0 && oldData.documentUrls) {
+      documentUrls = oldData.documentUrls.split(',').filter(u => u.trim());
+    }
+    if (ownerAadhaarDocUrls.length === 0 && oldData.ownerAadhaarDocUrls) {
+      ownerAadhaarDocUrls = oldData.ownerAadhaarDocUrls.split(',').filter(u => u.trim());
+    }
+    if (ownerPanDocUrls.length === 0 && oldData.ownerPanDocUrls) {
+      ownerPanDocUrls = oldData.ownerPanDocUrls.split(',').filter(u => u.trim());
+    }
+    if (ownerOtherDocUrls.length === 0 && oldData.ownerOtherDocUrls) {
+      ownerOtherDocUrls = oldData.ownerOtherDocUrls.split(',').filter(u => u.trim());
+    }
+
+    const imageUrlsStr = imageUrls.map(normalizeUrl).join(',');
+    const ownerImageUrlsStr = ownerImageUrls.map(normalizeUrl).join(',');
+    const documentUrlsStr = documentUrls.map(normalizeUrl).join(',');
+    const ownerAadhaarDocUrlsStr = ownerAadhaarDocUrls.map(normalizeUrl).join(',');
+    const ownerPanDocUrlsStr = ownerPanDocUrls.map(normalizeUrl).join(',');
+    const ownerOtherDocUrlsStr = ownerOtherDocUrls.map(normalizeUrl).join(',');
+
+    const ownerDetailsStr = typeof ownerDetails === 'string' ? ownerDetails : JSON.stringify(ownerDetails || []);
+
+    await sql.query`
+      UPDATE Surveys 
+      SET 
+        citizenEmail = ${citizenEmail || oldData.citizenEmail},
+        mobile = ${mobile || oldData.mobile},
+        name = ${name || oldData.name},
+        ward = ${ward || oldData.ward},
+        propertyType = ${propertyType || oldData.propertyType},
+        ownershipType = ${ownershipType || oldData.ownershipType},
+        road = ${road || oldData.road},
+        propertySituation = ${propertySituation || oldData.propertySituation},
+        numberOfFloors = ${numberOfFloors !== undefined ? parseInt(numberOfFloors) : oldData.numberOfFloors},
+        plotArea = ${plotArea !== undefined ? parseFloat(plotArea) : oldData.plotArea},
+        builtUpArea = ${builtUpArea !== undefined ? parseFloat(builtUpArea) : oldData.builtUpArea},
+        geoLat = ${geoLat !== undefined ? parseFloat(geoLat) : oldData.geoLat},
+        geoLng = ${geoLng !== undefined ? parseFloat(geoLng) : oldData.geoLng},
+        ownerDetails = ${ownerDetailsStr},
+        imageUrls = ${imageUrlsStr},
+        ownerImageUrls = ${ownerImageUrlsStr},
+        documentUrls = ${documentUrlsStr},
+        ownerAadhaarDocUrls = ${ownerAadhaarDocUrlsStr},
+        ownerPanDocUrls = ${ownerPanDocUrlsStr},
+        ownerOtherDocUrls = ${ownerOtherDocUrlsStr},
+        isEdited = 1,
+        editedAt = GETDATE()
+      WHERE id = ${id}
+    `;
+
+    res.json({ success: true, message: 'Survey updated successfully' });
+  } catch (err) {
+    console.error('Edit survey error:', err);
+    res.status(500).json({ error: err.message });
+  }
+});
+
 // List surveys (all or by citizen email)
 app.get('/api/surveys', async (req, res) => {
   try {
