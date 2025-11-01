@@ -748,37 +748,17 @@ app.put('/api/surveys/:id', upload.fields([{ name: 'images', maxCount: 5 }, { na
         }
       }
     }
-
+    
     // Merge with existing URLs if no new files uploaded
     const oldData = existing.recordset[0];
-    if (imageUrls.length === 0 && oldData.imageUrls) {
-      imageUrls = oldData.imageUrls.split(',').filter(u => u.trim());
-    }
-    if (ownerImageUrls.length === 0 && oldData.ownerImageUrls) {
-      ownerImageUrls = oldData.ownerImageUrls.split(',').filter(u => u.trim());
-    }
-    if (documentUrls.length === 0 && oldData.documentUrls) {
-      documentUrls = oldData.documentUrls.split(',').filter(u => u.trim());
-    }
-    if (ownerAadhaarDocUrls.length === 0 && oldData.ownerAadhaarDocUrls) {
-      ownerAadhaarDocUrls = oldData.ownerAadhaarDocUrls.split(',').filter(u => u.trim());
-    }
-    if (ownerPanDocUrls.length === 0 && oldData.ownerPanDocUrls) {
-      ownerPanDocUrls = oldData.ownerPanDocUrls.split(',').filter(u => u.trim());
-    }
-    if (ownerOtherDocUrls.length === 0 && oldData.ownerOtherDocUrls) {
-      ownerOtherDocUrls = oldData.ownerOtherDocUrls.split(',').filter(u => u.trim());
-    }
-
-    const imageUrlsStr = imageUrls.map(normalizeUrl).join(',');
-    const ownerImageUrlsStr = ownerImageUrls.map(normalizeUrl).join(',');
-    const documentUrlsStr = documentUrls.map(normalizeUrl).join(',');
-    const ownerAadhaarDocUrlsStr = ownerAadhaarDocUrls.map(normalizeUrl).join(',');
-    const ownerPanDocUrlsStr = ownerPanDocUrls.map(normalizeUrl).join(',');
-    const ownerOtherDocUrlsStr = ownerOtherDocUrls.map(normalizeUrl).join(',');
-
+    
+    // If no new images, preserve old images column
+    const finalImages = imageUrls.length > 0 ? imageUrls.join(',') : (oldData.images || '');
+    
+    // Parse owner details
     const ownerDetailsStr = typeof ownerDetails === 'string' ? ownerDetails : JSON.stringify(ownerDetails || []);
 
+    // Update survey with new data
     await sql.query`
       UPDATE Surveys 
       SET 
@@ -795,13 +775,7 @@ app.put('/api/surveys/:id', upload.fields([{ name: 'images', maxCount: 5 }, { na
         builtUpArea = ${builtUpArea !== undefined ? parseFloat(builtUpArea) : oldData.builtUpArea},
         geoLat = ${geoLat !== undefined ? parseFloat(geoLat) : oldData.geoLat},
         geoLng = ${geoLng !== undefined ? parseFloat(geoLng) : oldData.geoLng},
-        ownerDetails = ${ownerDetailsStr},
-        imageUrls = ${imageUrlsStr},
-        ownerImageUrls = ${ownerImageUrlsStr},
-        documentUrls = ${documentUrlsStr},
-        ownerAadhaarDocUrls = ${ownerAadhaarDocUrlsStr},
-        ownerPanDocUrls = ${ownerPanDocUrlsStr},
-        ownerOtherDocUrls = ${ownerOtherDocUrlsStr},
+        images = ${finalImages},
         isEdited = 1,
         editedAt = GETDATE()
       WHERE id = ${id}
