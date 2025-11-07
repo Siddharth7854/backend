@@ -1,0 +1,11 @@
+services:
+  - type: web
+    name: property-survey-backend
+    env: node
+    region: oregon
+    plan: free
+    buildCommand: npm install
+    startCommand: node index.js
+    envVars:
+      - key: NODE_ENV
+        value: production
