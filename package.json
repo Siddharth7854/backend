@@ -3,7 +3,6 @@
   "version": "1.0.0",
   "description": "Backend for Smart Property Survey",
   "main": "index.js",
-  "type": "module",
   "scripts": {
     "start": "node index.js",
     "start:prod": "node index.js",

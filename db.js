@@ -1,4 +1,4 @@
-import sql from 'mssql';
+const sql = require('mssql');
 
 // Read DB configuration from environment variables with sane defaults
 const config = {
@@ -19,7 +19,7 @@ const config = {
 };
 
 let pool = null;
-export async function connectDb() {
+async function connectDb() {
   try {
     if (!pool) {
       pool = await sql.connect(config);
@@ -31,3 +31,5 @@ export async function connectDb() {
     throw err;
   }
 }
+
+module.exports = { connectDb };

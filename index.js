@@ -1,14 +1,14 @@
-import express from 'express';
-import cors from 'cors';
-import bodyParser from 'body-parser';
-import { body, validationResult } from 'express-validator';
-import bcrypt from 'bcryptjs';
-import jwt from 'jsonwebtoken';
-import dotenv from 'dotenv';
-import { connectDb } from './db.js';
-import multer from 'multer';
-import fs from 'fs';
-import path from 'path';
+const express = require('express');
+const cors = require('cors');
+const bodyParser = require('body-parser');
+const { body, validationResult } = require('express-validator');
+const bcrypt = require('bcryptjs');
+const jwt = require('jsonwebtoken');
+const dotenv = require('dotenv');
+const { connectDb } = require('./db.js');
+const multer = require('multer');
+const fs = require('fs');
+const path = require('path');
 import admin from 'firebase-admin';
 
 dotenv.config();
