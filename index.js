@@ -346,6 +346,8 @@ app.post('/api/signup',
 app.post('/api/login', async (req, res) => {
   const { email, password, role } = req.body;
   try {
+    console.log(`Login attempt: email=${email}, role=${role}`);
+    
     // Temporary hardcoded admin bypass for database permission issues
     if (email === 'admin@survey.com' && password === 'admin2026' && role === 'admin') {
       const token = jwt.sign({ email, isAdmin: true }, JWT_SECRET, { expiresIn: '8h' });
@@ -360,7 +362,10 @@ app.post('/api/login', async (req, res) => {
     const sql = await connectDb();
     // Lookup user by email
     const result = await sql.query`SELECT * FROM Citizens WHERE email = ${email}`;
-    if (result.recordset.length === 0) return res.status(401).json({ error: 'Invalid credentials' });
+    if (result.recordset.length === 0) {
+      console.log(`Login failed: user not found for ${email}`);
+      return res.status(401).json({ error: 'Invalid credentials' });
+    }
     const user = result.recordset[0];
     console.log(`Login request received for email='${email}', role='${role}'`);
     // Defensive: if stored password is missing/null/empty, reject immediately
@@ -382,7 +387,8 @@ app.post('/api/login', async (req, res) => {
     const token = jwt.sign({ email: user.email, isAdmin: !!user.isAdmin }, JWT_SECRET, { expiresIn: '8h' });
     res.json({ success: true, user, token });
   } catch (err) {
-    res.status(500).json({ error: err.message });
+    console.error('Login error:', err.message, err.stack);
+    res.status(500).json({ error: err.message || 'Server error during login' });
   }
 });
 
