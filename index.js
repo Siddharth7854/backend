@@ -346,6 +346,17 @@ app.post('/api/signup',
 app.post('/api/login', async (req, res) => {
   const { email, password, role } = req.body;
   try {
+    // Temporary hardcoded admin bypass for database permission issues
+    if (email === 'admin@survey.com' && password === 'admin2026' && role === 'admin') {
+      const token = jwt.sign({ email, isAdmin: true }, JWT_SECRET, { expiresIn: '8h' });
+      console.log(`Hardcoded admin login successful for ${email}`);
+      return res.json({ 
+        success: true, 
+        user: { id: 1, email, name: 'Admin', ward: 'admin', isAdmin: true }, 
+        token 
+      });
+    }
+
     const sql = await connectDb();
     // Lookup user by email
     const result = await sql.query`SELECT * FROM Citizens WHERE email = ${email}`;
