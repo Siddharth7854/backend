@@ -2,6 +2,7 @@
   "name": "property-survey-backend",
   "version": "1.0.0",
   "description": "Backend for Smart Property Survey",
+  "type": "commonjs",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
