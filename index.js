@@ -9,7 +9,7 @@ const { connectDb } = require('./db.js');
 const multer = require('multer');
 const fs = require('fs');
 const path = require('path');
-import admin from 'firebase-admin';
+const admin = require('firebase-admin');
 
 dotenv.config();
 
