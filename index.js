@@ -320,6 +320,19 @@ app.get('/', (req, res) => {
   res.send('Property Survey Backend Running');
 });
 
+// Debug endpoint to test hardcoded login
+app.get('/api/test-hardcoded-login', (req, res) => {
+  res.json({ 
+    message: 'Hardcoded login is active',
+    adminEmail: 'admin@survey.com',
+    adminPassword: 'admin2026',
+    surveyorEmail: 'surveyor@test.com',
+    surveyorPassword: 'surveyor123',
+    latestCommit: '7686058',
+    deployedAt: new Date().toISOString()
+  });
+});
+
 // Citizen signup
 app.post('/api/signup',
   // validation
@@ -351,13 +364,17 @@ app.post('/api/signup',
 app.post('/api/login', async (req, res) => {
   const { email, password, role } = req.body;
   try {
-    console.log(`Login attempt: email=${email}, role=${role}`);
+    console.log(`===== LOGIN ATTEMPT =====`);
+    console.log(`Email: ${email}`);
+    console.log(`Password length: ${password ? password.length : 0}`);
+    console.log(`Role: ${role}`);
+    console.log(`========================`);
     
     // Temporary hardcoded users bypass for database permission issues
     // Admin login
     if (email === 'admin@survey.com' && password === 'admin2026' && role === 'admin') {
       const token = jwt.sign({ email, isAdmin: true }, JWT_SECRET, { expiresIn: '8h' });
-      console.log(`Hardcoded admin login successful for ${email}`);
+      console.log(`✅ Hardcoded admin login successful for ${email}`);
       return res.json({ 
         success: true, 
         user: { id: 1, email, name: 'Admin', ward: 'admin', isAdmin: true }, 
@@ -368,13 +385,15 @@ app.post('/api/login', async (req, res) => {
     // Surveyor login
     if (email === 'surveyor@test.com' && password === 'surveyor123' && role === 'surveyor') {
       const token = jwt.sign({ email, isAdmin: false }, JWT_SECRET, { expiresIn: '8h' });
-      console.log(`Hardcoded surveyor login successful for ${email}`);
+      console.log(`✅ Hardcoded surveyor login successful for ${email}`);
       return res.json({ 
         success: true, 
         user: { id: 2, email, name: 'Test Surveyor', ward: 'Ward 1', isAdmin: false }, 
         token 
       });
     }
+
+    console.log(`⚠️  Hardcoded bypass not matched, checking database...`);
 
     const sql = await connectDb();
     // Lookup user by email
