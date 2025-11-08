@@ -134,6 +134,11 @@ async function ensureCitizensTable() {
 // On startup ensure Citizens table has isAdmin column
 async function ensureIsAdminColumn() {
   try {
+    // Temporarily disabled due to database permission issues
+    // Will be re-enabled once database user has proper SELECT/UPDATE permissions
+    console.log('ensureIsAdminColumn: Skipped due to database permission restrictions');
+    return;
+    
     const sql = await connectDb();
     const colCheck = await sql.query`SELECT COLUMN_NAME FROM INFORMATION_SCHEMA.COLUMNS WHERE TABLE_NAME = 'Citizens' AND COLUMN_NAME = 'isAdmin'`;
     if (colCheck.recordset.length === 0) {
@@ -348,13 +353,25 @@ app.post('/api/login', async (req, res) => {
   try {
     console.log(`Login attempt: email=${email}, role=${role}`);
     
-    // Temporary hardcoded admin bypass for database permission issues
+    // Temporary hardcoded users bypass for database permission issues
+    // Admin login
     if (email === 'admin@survey.com' && password === 'admin2026' && role === 'admin') {
       const token = jwt.sign({ email, isAdmin: true }, JWT_SECRET, { expiresIn: '8h' });
       console.log(`Hardcoded admin login successful for ${email}`);
       return res.json({ 
         success: true, 
         user: { id: 1, email, name: 'Admin', ward: 'admin', isAdmin: true }, 
+        token 
+      });
+    }
+    
+    // Surveyor login
+    if (email === 'surveyor@test.com' && password === 'surveyor123' && role === 'surveyor') {
+      const token = jwt.sign({ email, isAdmin: false }, JWT_SECRET, { expiresIn: '8h' });
+      console.log(`Hardcoded surveyor login successful for ${email}`);
+      return res.json({ 
+        success: true, 
+        user: { id: 2, email, name: 'Test Surveyor', ward: 'Ward 1', isAdmin: false }, 
         token 
       });
     }
